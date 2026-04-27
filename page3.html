@@ -114,17 +114,33 @@
         <div id="summary"></div>
     </div>
 
-    <script>
+        <script>
         // Password protection
         const password = "jcb2026";
         const userPassword = prompt("Enter password to access the JCB work tracker:");
         if (userPassword !== password) {
             alert("Incorrect password. Access denied.");
-            window.location.href = "WEB.html";
+            window.location.href = "index.html";
         }
 
+        const STORAGE_KEY = 'jcbTrackerData';
         let jcbEntries = [];
         let editingIndex = -1;
+
+        function loadEntries() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    jcbEntries = JSON.parse(saved);
+                } catch (e) {
+                    jcbEntries = [];
+                }
+            }
+        }
+
+        function saveEntries() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(jcbEntries));
+        }
 
         document.getElementById('jcbForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -134,14 +150,13 @@
             const diesel = parseFloat(document.getElementById('dieselConsumed').value);
 
             if (editingIndex === -1) {
-                // Add new
                 jcbEntries.push({ customer, date, hours, diesel });
             } else {
-                // Update existing
                 jcbEntries[editingIndex] = { customer, date, hours, diesel };
                 editingIndex = -1;
                 document.getElementById('submitBtn').textContent = 'Add Entry';
             }
+            saveEntries();
             updateTable();
             updateSummary();
             document.getElementById('jcbForm').reset();
@@ -180,6 +195,7 @@
 
         function deleteEntry(index) {
             jcbEntries.splice(index, 1);
+            saveEntries();
             updateTable();
             updateSummary();
         }
@@ -201,9 +217,14 @@
             jcbEntries = [];
             editingIndex = -1;
             document.getElementById('submitBtn').textContent = 'Add Entry';
+            saveEntries();
             updateTable();
             updateSummary();
         }
+
+        loadEntries();
+        updateTable();
+        updateSummary();
     </script>
 </body>
 </html></content>
