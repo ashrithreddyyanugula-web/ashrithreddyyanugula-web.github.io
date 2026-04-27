@@ -133,35 +133,50 @@
         <div id="summary"></div>
     </div>
 
-    <script>
+        <script>
         // Password protection
         const password = "transport2026";
         const userPassword = prompt("Enter password to access the trip tracker:");
         if (userPassword !== password) {
             alert("Incorrect password. Access denied.");
-            window.location.href = "WEB.html";
+            window.location.href = "index.html";
         }
 
+        const STORAGE_KEY = 'tripTrackerData';
         let trips = [];
         let editingIndex = -1;
 
-        document.getElementById('tripForm').addEventListener('submit', function (e) {
+        function loadTrips() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    trips = JSON.parse(saved);
+                } catch (e) {
+                    trips = [];
+                }
+            }
+        }
+
+        function saveTrips() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
+        }
+
+        document.getElementById('tripForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const customer = document.getElementById('customerName').value;
             const driver = document.getElementById('driverName').value;
             const date = document.getElementById('tripDate').value;
-            const tripsCount = parseInt(document.getElementById('dailyTrips').value);
+            const tripsCount = parseInt(document.getElementById('dailyTrips').value, 10);
             const dieselConsumed = parseFloat(document.getElementById('dieselConsumed').value);
 
             if (editingIndex === -1) {
-                // Add new
                 trips.push({ customer, driver, date, tripsCount, dieselConsumed });
             } else {
-                // Update existing
                 trips[editingIndex] = { customer, driver, date, tripsCount, dieselConsumed };
                 editingIndex = -1;
                 document.getElementById('submitBtn').textContent = 'Add Trip';
             }
+            saveTrips();
             updateTable();
             updateSummary();
             document.getElementById('tripForm').reset();
@@ -200,6 +215,13 @@
             document.getElementById('submitBtn').textContent = 'Update Trip';
         }
 
+        function deleteTrip(index) {
+            trips.splice(index, 1);
+            saveTrips();
+            updateTable();
+            updateSummary();
+        }
+
         function updateSummary() {
             const totalTrips = trips.reduce((sum, trip) => sum + trip.tripsCount, 0);
             const totalDiesel = trips.reduce((sum, trip) => sum + trip.dieselConsumed, 0);
@@ -215,6 +237,9 @@
             `;
         }
 
+        loadTrips();
+        updateTable();
+        updateSummary();
     </script>
 </body>
 
